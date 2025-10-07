@@ -1,6 +1,6 @@
 import React from 'react';
 import Square from './square';
-import './board.css';
+import '../styles/Board.css';
 
 // Component Board nhận 2 props:
 // - squares: mảng 9 phần tử chứa trạng thái của bàn cờ

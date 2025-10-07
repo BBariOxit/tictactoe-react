@@ -1,5 +1,5 @@
 import React from 'react';
-import './square.css';
+import '../styles/Square.css';
 
 // Component Square nhận 2 props:
 // - value: giá trị hiển thị ('X', 'O', hoặc null)

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Board from './board';
-import './game.css';
+import '../styles/Game.css';
 
 function Game() {
   // State: mảng 9 ô, ban đầu đều null
