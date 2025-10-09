@@ -21,6 +21,75 @@
   animation: fadeInDown 0.6s ease;
 }
 
+/* Chọn chế độ chơi */
+.game-mode-selector {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.mode-button {
+  padding: 12px 30px;
+  font-size: 16px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.mode-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.mode-button.active {
+  background: linear-gradient(145deg, #4CAF50, #45a049);
+  border-color: #4CAF50;
+  box-shadow: 0 5px 20px rgba(76, 175, 80, 0.4);
+}
+
+/* Chọn ký hiệu X/O */
+.symbol-selector {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 20px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.symbol-button {
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.symbol-button:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+.symbol-button.active {
+  background: linear-gradient(145deg, #2196F3, #1976D2);
+  border-color: #2196F3;
+  box-shadow: 0 5px 20px rgba(33, 150, 243, 0.4);
+}
+
+
 .status {
   font-size: 24px;
   font-weight: 600;

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Board from './board';
 import '../styles/Game.css';
+import { calculateWinner, checkDraw } from '../utils/gameLogic';
+import { getBestMove } from '../utils/minimax';
 
 function Game() {
   // State: mảng 9 ô, ban đầu đều null
@@ -8,6 +10,37 @@ function Game() {
   
   // State: theo dõi lượt chơi (true = X, false = O)
   const [xIsNext, setXIsNext] = useState(true);
+  
+  // State: Chế độ chơi ('pvp' hoặc 'pvbot')
+  const [gameMode, setGameMode] = useState('pvp');
+  
+  // State: Người chơi là X hay O (khi chơi với bot)
+  const [humanSymbol, setHumanSymbol] = useState('X');
+  const botSymbol = humanSymbol === 'X' ? 'O' : 'X';
+
+  // Effect: Bot tự động đánh khi đến lượt
+  useEffect(() => {
+    // Điều kiện: Chế độ bot, lượt bot, chưa kết thúc
+    const isBotTurn = (xIsNext && botSymbol === 'X') || (!xIsNext && botSymbol === 'O');
+    const gameEnded = calculateWinner(squares) || checkDraw(squares);
+    
+    if (gameMode === 'pvbot' && isBotTurn && !gameEnded) {
+      // Delay 500ms để tự nhiên hơn
+      const timer = setTimeout(() => {
+        const boardCopy = squares.slice();
+        const bestMove = getBestMove(boardCopy, botSymbol, humanSymbol);
+        
+        if (bestMove !== null && bestMove !== undefined) {
+          const newSquares = squares.slice();
+          newSquares[bestMove] = botSymbol;
+          setSquares(newSquares);
+          setXIsNext(!xIsNext);
+        }
+      }, 500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [squares, xIsNext, gameMode]);
 
   // Hàm xử lý khi click vào ô thứ i
   const handleClick = (i) => {
@@ -16,6 +49,12 @@ function Game() {
     
     // Nếu đã có người thắng hoặc ô đã được đánh, return
     if (calculateWinner(newSquares) || newSquares[i]) {
+      return;
+    }
+    
+    // Nếu đang chơi với bot và đang là lượt bot, không cho click
+    if (gameMode === 'pvbot' && 
+        ((xIsNext && botSymbol === 'X') || (!xIsNext && botSymbol === 'O'))) {
       return;
     }
     
@@ -32,6 +71,19 @@ function Game() {
     setSquares(Array(9).fill(null));
     setXIsNext(true);
   };
+  
+  // Hàm chuyển đổi chế độ chơi
+  const toggleGameMode = (mode) => {
+    setGameMode(mode);
+    resetGame();
+  };
+  
+  // Hàm chọn ký hiệu cho người chơi
+  const selectSymbol = (symbol) => {
+    setHumanSymbol(symbol);
+    setXIsNext(true);
+    resetGame();
+  };
 
   // Kiểm tra người thắng
   const winner = calculateWinner(squares);
@@ -39,48 +91,68 @@ function Game() {
   // Xác định status hiển thị
   let status;
   if (winner) {
-    status = `Người thắng: ${winner}`;
-  } else if (squares.every(square => square !== null)) {
-    status = 'Hòa!';
+    if (gameMode === 'pvbot') {
+      status = winner === humanSymbol ? '🎉 Bạn thắng!' : '🤖 Bot thắng!';
+    } else {
+      status = `🏆 Người thắng: ${winner}`;
+    }
+  } else if (checkDraw(squares)) {
+    status = '🤝 Hòa!';
   } else {
-    status = `Lượt tiếp theo: ${xIsNext ? 'X' : 'O'}`;
+    if (gameMode === 'pvbot') {
+      const isHumanTurn = (xIsNext && humanSymbol === 'X') || (!xIsNext && humanSymbol === 'O');
+      status = isHumanTurn ? '👤 Lượt của bạn' : '🤖 Bot đang suy nghĩ...';
+    } else {
+      status = `Lượt tiếp theo: ${xIsNext ? 'X' : 'O'}`;
+    }
   }
 
   return (
     <div className="game">
       <h1>Tic-Tac-Toe</h1>
+      
+      {/* Chọn chế độ chơi */}
+      <div className="game-mode-selector">
+        <button 
+          className={`mode-button ${gameMode === 'pvp' ? 'active' : ''}`}
+          onClick={() => toggleGameMode('pvp')}
+        >
+          👥 Người vs Người
+        </button>
+        <button 
+          className={`mode-button ${gameMode === 'pvbot' ? 'active' : ''}`}
+          onClick={() => toggleGameMode('pvbot')}
+        >
+          🤖 Người vs Bot
+        </button>
+      </div>
+      
+      {/* Chọn X hoặc O khi chơi với bot */}
+      {gameMode === 'pvbot' && (
+        <div className="symbol-selector">
+          <span>Chọn ký hiệu của bạn:</span>
+          <button 
+            className={`symbol-button ${humanSymbol === 'X' ? 'active' : ''}`}
+            onClick={() => selectSymbol('X')}
+          >
+            X
+          </button>
+          <button 
+            className={`symbol-button ${humanSymbol === 'O' ? 'active' : ''}`}
+            onClick={() => selectSymbol('O')}
+          >
+            O
+          </button>
+        </div>
+      )}
+      
       <div className="status">{status}</div>
       <Board squares={squares} onClick={handleClick} />
       <button className="reset-button" onClick={resetGame}>
-        Chơi lại
+        🔄 Chơi lại
       </button>
     </div>
   );
-}
-
-// Hàm tính toán người thắng
-function calculateWinner(squares) {
-  // Tất cả các tổ hợp thắng có thể
-  const lines = [
-    [0, 1, 2], // Hàng 1
-    [3, 4, 5], // Hàng 2
-    [6, 7, 8], // Hàng 3
-    [0, 3, 6], // Cột 1
-    [1, 4, 7], // Cột 2
-    [2, 5, 8], // Cột 3
-    [0, 4, 8], // Chéo chính
-    [2, 4, 6], // Chéo phụ
-  ];
-
-  // Duyệt qua từng tổ hợp
-  for (let i = 0; i < lines.length; i++) {
-    const [a, b, c] = lines[i];
-    // Nếu 3 ô giống nhau và khác null => có người thắng
-    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-      return squares[a];
-    }
-  }
-  return null;
 }
 
 export default Game;
